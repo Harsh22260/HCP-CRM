@@ -71,9 +71,9 @@ flowchart LR
         R2["/api/chat router"]
         R3["/api/hcps router"]
         TOOLS["Shared Service / Tool Layer (tools.py)"]
-        AGENT["LangGraph ReAct Agent\n(create_react_agent + MemorySaver checkpoint)"]
-        LLM["Groq LLM — gemma2-9b-it (primary)\nllama-3.3-70b-versatile (fallback)"]
-        DB[("SQLAlchemy ORM\nSQLite (dev) / PostgreSQL (prod)")]
+        AGENT["LangGraph ReAct Agent<br/>(create_react_agent + MemorySaver checkpoint)"]
+        LLM["Groq LLM — gemma2-9b-it (primary)<br/>llama-3.3-70b-versatile (fallback)"]
+        DB[("SQLAlchemy ORM<br/>SQLite (dev) / PostgreSQL (prod)")]
 
         R1 --> TOOLS
         R2 --> AGENT
@@ -139,25 +139,51 @@ Conversation state is kept per `session_id` via LangGraph's `MemorySaver` checkp
 
 ## Data Model
 
-```
-HCP                              Interaction                       ChatSession
-├─ id (PK)                       ├─ id (PK)                        ├─ id (PK)
-├─ name                          ├─ hcp_id (FK → HCP)               ├─ session_id (indexed)
-├─ specialty                     ├─ hcp_name                        ├─ role (user/assistant/tool)
-├─ hospital                      ├─ interaction_type                ├─ content
-├─ email                         ├─ channel (form / chat)            └─ created_at
-├─ phone                         ├─ date / time
-└─ created_at                    ├─ attendees
-                                  ├─ raw_text / topics_discussed
-                                  ├─ summary (LLM)
-                                  ├─ sentiment (LLM)
-                                  ├─ products_discussed (JSON)
-                                  ├─ samples_distributed (JSON)
-                                  ├─ materials_shared (JSON)
-                                  ├─ outcomes
-                                  ├─ follow_up_required / date / notes
-                                  ├─ entities (JSON — full LLM extraction dump)
-                                  ├─ created_at / updated_at
+```mermaid
+erDiagram
+    HCP ||--o{ INTERACTION : "has many"
+
+    HCP {
+        int id PK
+        string name
+        string specialty
+        string hospital
+        string email
+        string phone
+        datetime created_at
+    }
+
+    INTERACTION {
+        int id PK
+        int hcp_id FK
+        string hcp_name
+        string interaction_type
+        string channel "form or chat"
+        string date
+        string time
+        string attendees
+        text raw_text
+        text summary "LLM-generated"
+        string sentiment "LLM-generated"
+        json products_discussed
+        json samples_distributed
+        json materials_shared
+        text outcomes
+        string follow_up_required
+        string follow_up_date
+        text follow_up_notes
+        json entities "full LLM extraction dump"
+        datetime created_at
+        datetime updated_at
+    }
+
+    CHATSESSION {
+        int id PK
+        string session_id "indexed"
+        string role "user, assistant, or tool"
+        text content
+        datetime created_at
+    }
 ```
 
 `HCP` is auto-populated from either logging path — there's no separate "add HCP" step required before a rep can log against them, though the directory also supports manual creation via `POST /api/hcps/`.

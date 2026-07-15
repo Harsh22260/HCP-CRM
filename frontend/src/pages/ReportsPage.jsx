@@ -5,6 +5,17 @@ const MOCK_EXPORTS = [
 ]
 
 export default function ReportsPage() {
+  const handleGenerateExport = () => {
+    // Open the CSV export endpoint directly to trigger browser file download
+    window.open('http://localhost:8000/api/interactions/dashboard/export', '_blank')
+  }
+
+  const generatedExports = [
+    { id: 1, name: 'hcp_interactions_export.csv', size: 'Live Database Query', date: 'Just now', status: 'Completed' },
+    { id: 2, name: 'Sample_Distribution_Audit_June.xlsx', size: '112 KB', date: 'June 30, 2026', status: 'Completed' },
+    { id: 3, name: 'Doctor_Feedback_Sentiment_Summary.pdf', size: '1.2 MB', date: 'June 15, 2026', status: 'Archived' },
+  ]
+
   return (
     <div className="main-content">
       {/* Top bar */}
@@ -30,23 +41,19 @@ export default function ReportsPage() {
         <div style={{ display: 'flex', gap: 12, background: 'var(--bg)', padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border-light)', marginBottom: 24, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 200 }}>
             <label className="field-label" style={{ marginBottom: 6 }}>Export Scope</label>
-            <select style={{ width: '100%', background: 'var(--card-bg)' }}>
-              <option>All Interactions Log</option>
-              <option>Samples Distribution Audit</option>
-              <option>Pending Follow-ups Report</option>
+            <select style={{ width: '100%', background: 'var(--card-bg)' }} disabled>
+              <option>All Interactions Log (Live Database)</option>
             </select>
           </div>
           <div style={{ flex: 1, minWidth: 140 }}>
             <label className="field-label" style={{ marginBottom: 6 }}>Format</label>
-            <select style={{ width: '100%', background: 'var(--card-bg)' }}>
+            <select style={{ width: '100%', background: 'var(--card-bg)' }} disabled>
               <option>CSV Spreadsheet (.csv)</option>
-              <option>Excel Worksheet (.xlsx)</option>
-              <option>Acrobat Document (.pdf)</option>
             </select>
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-            <button className="btn btn-primary" style={{ height: 38 }}>
-              ⚙️ Generate Export
+            <button className="btn btn-primary" style={{ height: 38 }} onClick={handleGenerateExport}>
+              ⚙️ Generate & Download Export
             </button>
           </div>
         </div>
@@ -55,14 +62,14 @@ export default function ReportsPage() {
         <div>
           <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Export History</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {MOCK_EXPORTS.map((exp) => (
+            {generatedExports.map((exp) => (
               <div key={exp.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ fontSize: 20 }}>📁</span>
                   <div>
                     <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: 13 }}>{exp.name}</div>
                     <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                      {exp.size} • Generated {exp.date}
+                      {exp.size} • {exp.id === 1 ? 'Generated dynamically' : `Generated ${exp.date}`}
                     </div>
                   </div>
                 </div>
@@ -70,7 +77,7 @@ export default function ReportsPage() {
                   <span className="sentiment-badge positive" style={{ fontSize: 10 }}>
                     {exp.status}
                   </span>
-                  <button className="btn btn-secondary btn-sm" style={{ padding: '6px 12px' }}>
+                  <button className="btn btn-secondary btn-sm" style={{ padding: '6px 12px' }} onClick={handleGenerateExport}>
                     ⬇️ Download
                   </button>
                 </div>

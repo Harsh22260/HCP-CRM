@@ -3,6 +3,7 @@ from typing import Optional, List, Dict, Any
 
 
 class InteractionCreate(BaseModel):
+    hcp_id: Optional[int] = None
     hcp_name: str
     interaction_type: str = "Meeting"
     channel: str = "form"
@@ -20,6 +21,7 @@ class InteractionCreate(BaseModel):
 
 
 class InteractionUpdate(BaseModel):
+    hcp_id: Optional[int] = None
     hcp_name: Optional[str] = None
     interaction_type: Optional[str] = None
     date: Optional[str] = None
@@ -39,6 +41,7 @@ class InteractionUpdate(BaseModel):
 
 class InteractionOut(BaseModel):
     id: int
+    hcp_id: Optional[int] = None
     hcp_name: str
     interaction_type: Optional[str] = None
     channel: Optional[str] = None
@@ -71,3 +74,44 @@ class ChatMessageOut(BaseModel):
     reply: str
     tool_calls: Optional[List[str]] = []
     last_interaction: Optional[InteractionOut] = None
+
+
+class HCPCreate(BaseModel):
+    name: str
+    specialty: Optional[str] = None
+    hospital: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+
+
+class HCPOut(BaseModel):
+    id: int
+    name: str
+    specialty: Optional[str] = None
+    hospital: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class SentimentBreakdown(BaseModel):
+    positive: int = 0
+    neutral: int = 0
+    negative: int = 0
+
+
+class ProductMention(BaseModel):
+    name: str
+    count: int
+
+
+class AnalyticsOut(BaseModel):
+    total_visits: int
+    positive_percentage: int
+    pending_follow_ups: int
+    samples_distributed: int
+    sentiment_breakdown: SentimentBreakdown
+    top_products: List[ProductMention]
+

@@ -25,7 +25,12 @@ return ONLY a valid JSON object (no markdown, no extra text) with these keys:
 - samples_distributed: list of objects like {{"product": "...", "qty": number}}
 - follow_up_required: "yes" or "no"
 - follow_up_date: a date string if mentioned, else null
+- follow_up_notes: a short description of the follow-up task/objective if mentioned, else null
 - hcp_name: the HCP/doctor name if mentioned, else null
+- hcp_specialty: the doctor's specialty/specialization (e.g. Cardiologist, Diabetologist) if mentioned/inferable, else null
+- hcp_hospital: the hospital, clinic, or medical center name if mentioned/inferable, else null
+- hcp_email: the doctor's email address if mentioned, else null
+- hcp_phone: the doctor's phone number if mentioned, else null
 - interaction_type: one of "Meeting", "Phone Call", "Email", "Conference" if determinable, else "Meeting"
 - attendees: comma-separated list of other attendees mentioned, else null
 - materials_shared: list of materials/brochures shared, else empty list
@@ -49,7 +54,12 @@ Interaction note:
             "samples_distributed": [],
             "follow_up_required": "no",
             "follow_up_date": None,
+            "follow_up_notes": None,
             "hcp_name": None,
+            "hcp_specialty": None,
+            "hcp_hospital": None,
+            "hcp_email": None,
+            "hcp_phone": None,
             "interaction_type": "Meeting",
             "attendees": None,
             "materials_shared": [],
@@ -64,8 +74,25 @@ def log_interaction(hcp_name: str, interaction_type: str, raw_text: str, channel
     extracted = _extract_entities_and_summary(raw_text)
     db = SessionLocal()
     try:
+        from app.models.db_models import HCP
+        
+        # Look up or create HCP
+        hcp = db.query(HCP).filter(HCP.name.ilike(hcp_name.strip())).first()
+        if not hcp:
+            hcp = HCP(
+                name=hcp_name.strip(),
+                specialty=extracted.get("hcp_specialty") or "General Practitioner",
+                hospital=extracted.get("hcp_hospital") or "General Hospital",
+                email=extracted.get("hcp_email"),
+                phone=extracted.get("hcp_phone")
+            )
+            db.add(hcp)
+            db.commit()
+            db.refresh(hcp)
+
         record = Interaction(
-            hcp_name=hcp_name,
+            hcp_id=hcp.id,
+            hcp_name=hcp.name,
             interaction_type=interaction_type,
             channel=channel,
             raw_text=raw_text,
@@ -77,13 +104,14 @@ def log_interaction(hcp_name: str, interaction_type: str, raw_text: str, channel
             materials_shared=extracted.get("materials_shared", []),
             follow_up_required=extracted.get("follow_up_required", "no"),
             follow_up_date=extracted.get("follow_up_date"),
+            follow_up_notes=extracted.get("follow_up_notes"),
             attendees=extracted.get("attendees"),
             entities=extracted,
         )
         db.add(record)
         db.commit()
         db.refresh(record)
-        return f"Interaction #{record.id} logged for {hcp_name}. Summary: {extracted.get('summary')}"
+        return f"Interaction #{record.id} logged for {hcp.name}. Summary: {extracted.get('summary')}"
     finally:
         db.close()
 
@@ -95,7 +123,7 @@ def edit_interaction(interaction_id: int, field: str, new_value: str) -> str:
     Use this when the rep wants to correct or update a previously logged interaction."""
     allowed_fields = {
         "hcp_name", "interaction_type", "summary",
-        "follow_up_required", "follow_up_date",
+        "follow_up_required", "follow_up_date", "follow_up_notes",
         "attendees", "topics_discussed", "sentiment"
     }
     if field not in allowed_fields:

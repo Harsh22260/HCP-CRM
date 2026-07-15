@@ -71,9 +71,9 @@ export default function Sidebar() {
       {/* Footer — user info */}
       <div className="sidebar-footer">
         <div className="sidebar-user">
-          <div className="sidebar-avatar">HR</div>
+          <div className="sidebar-avatar">H</div>
           <div className="sidebar-user-info">
-            <span className="user-name">Harsh R.</span>
+            <span className="user-name">Harsh</span>
             <span className="user-role">Field Representative</span>
           </div>
         </div>

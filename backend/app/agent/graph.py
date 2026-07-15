@@ -28,7 +28,7 @@ You have exactly 5 tools available:
 
 2. edit_interaction(interaction_id, field, new_value)
    - Use when the rep wants to update an existing interaction.
-   - field must be one of: hcp_name, interaction_type, summary, follow_up_required, follow_up_date, attendees, topics_discussed, sentiment
+   - field must be one of: hcp_name, interaction_type, summary, follow_up_required, follow_up_date, follow_up_notes, attendees, topics_discussed, sentiment
    - interaction_id is an integer number.
 
 3. get_hcp_history(hcp_name, limit)
